@@ -309,13 +309,54 @@ function shuffle(arr) {
   return a;
 }
 
-/* ================= storage (this device only — GitHub Pages has no server) ================= */
+/* ================= storage =================
+   Always saves to this browser (localStorage) — that's the whole story on
+   GitHub Pages. Opened as a Claude artifact, the shared artifact database
+   also syncs every quiz, so any signed-in device sees one combined history. */
 const KEY = "civics-champ-history";
-function loadHistory() {
+function loadLocal() {
   try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
 }
-function saveHistory(h) {
+function saveLocal(h) {
   try { localStorage.setItem(KEY, JSON.stringify(h)); } catch {}
+}
+
+let db = null, dbHistory = null, synced = false;
+
+function loadHistory() { return synced && dbHistory ? dbHistory : loadLocal(); }
+
+function addRecord(rec) {
+  const h = loadLocal(); h.push(rec); saveLocal(h);
+  if (db) db.doc("quizzes/" + rec.id).set(rec).catch(() => {});
+}
+
+function clearHistory() {
+  saveLocal([]);
+  if (db && dbHistory) {
+    for (const r of dbHistory) if (r.id) db.doc("quizzes/" + r.id).delete().catch(() => {});
+    dbHistory = [];
+  }
+}
+
+function initDb() {
+  try {
+    if (!(window.claude && typeof window.claude.use === "function")) return;
+    window.claude.use("db").then(d => {
+      if (!d) return;
+      db = d;
+      db.collection("quizzes").onSnapshot(snap => {
+        dbHistory = snap.docs.filter(x => x.exists).map(x => x.data())
+          .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+        if (!synced) {
+          synced = true;
+          // first sync: push any quizzes this device took before syncing
+          const seen = new Set(dbHistory.map(r => r.id || r.date));
+          for (const r of loadLocal()) if (r.id && !seen.has(r.id)) db.doc("quizzes/" + r.id).set(r).catch(() => {});
+        }
+        if (state.screen === "home" || state.screen === "history") render();
+      }, () => { synced = false; dbHistory = null; });
+    }).catch(() => {});
+  } catch {}
 }
 
 /* ================= state ================= */
@@ -492,9 +533,7 @@ function finishQuiz() {
     right: state.right, total, percent,
     misses: state.misses.map(m => ({ q: m.q, a: m.a, c: m.c })),
   };
-  const h = loadHistory();
-  h.push(rec);
-  saveHistory(h);
+  addRecord(rec);
   state.lastResult = rec;
   go("results");
 }
@@ -566,12 +605,14 @@ function renderHistory() {
          <div class="tbar"><div style="width:${(n / maxMiss) * 100}%"></div></div>`).join("")}</div>` : ""}
     <div class="btn-row"><button class="btn btn-primary btn-wide" id="startBtn">Start a practice quiz</button></div>
     ${h.length ? `<div class="btn-row"><button class="btn btn-danger btn-wide" id="clearBtn">Clear history</button></div>` : ""}
-    <p class="footnote">History is saved on this device.</p>`;
+    <p class="footnote">${synced
+      ? "Scores sync — open this same link on any signed-in device to see them."
+      : "History is saved on this device."}</p>`;
 
   document.getElementById("startBtn").addEventListener("click", startQuiz);
   const clearBtn = document.getElementById("clearBtn");
   if (clearBtn) clearBtn.addEventListener("click", () => {
-    if (confirm("Delete all saved scores? This can't be undone.")) { saveHistory([]); render(); }
+    if (confirm("Delete all saved scores? This can't be undone.")) { clearHistory(); render(); }
   });
 }
 
@@ -660,6 +701,7 @@ function confetti() {
 }
 
 render();
+initDb();
 </script>
 </body>
 </html>
