@@ -15,5 +15,16 @@ government).
 
 ## Hosting
 
-Single static `index.html` — hosted free on **GitHub Pages** straight from this
-repo (Settings → Pages → deploy from `main`, root). No build step, no server.
+Single static `index.html`, no build step. Two live copies:
+
+- **Cloudflare Pages (primary): https://civics-champ.pages.dev** — a Pages
+  Function (`functions/api/scores.js`, backed by Workers KV bound as `SCORES`)
+  keeps one shared history at `/api/scores`, so every device sees the same
+  scores. Deployed with `npx wrangler pages deploy . --project-name
+  civics-champ --branch main` (needs `CLOUDFLARE_API_TOKEN` and
+  `CLOUDFLARE_ACCOUNT_ID`); deploys are manual, not tied to git pushes.
+- **GitHub Pages (backup): https://chemeg8r.github.io/civics-champ/** — same
+  app, static-only, so history stays per-device there.
+
+The app detects where it's running: with `/api/scores` it syncs; without, it
+falls back to this-device localStorage.

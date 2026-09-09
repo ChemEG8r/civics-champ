@@ -322,12 +322,15 @@ function saveLocal(h) {
 }
 
 let db = null, dbHistory = null, synced = false;
+const API = "/api/scores";
+let apiSynced = false;
 
 function loadHistory() { return synced && dbHistory ? dbHistory : loadLocal(); }
 
 function addRecord(rec) {
   const h = loadLocal(); h.push(rec); saveLocal(h);
   if (db) db.doc("quizzes/" + rec.id).set(rec).catch(() => {});
+  postRecord(rec).catch(() => {});
 }
 
 function clearHistory() {
@@ -336,6 +339,28 @@ function clearHistory() {
     for (const r of dbHistory) if (r.id) db.doc("quizzes/" + r.id).delete().catch(() => {});
     dbHistory = [];
   }
+  if (apiSynced) fetch(API, { method: "DELETE" }).catch(() => {});
+}
+
+/* Hosted with a server (Cloudflare Pages): /api/scores holds one shared
+   list for every device. Merges into localStorage; fails quietly elsewhere. */
+function postRecord(rec) {
+  return fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rec) });
+}
+async function syncApi() {
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error();
+    const server = await res.json();
+    if (!Array.isArray(server)) throw new Error();
+    const seen = new Set(server.map(r => r.id || r.date));
+    const missing = loadLocal().filter(r => !seen.has(r.id || r.date));
+    for (const r of missing) { try { await postRecord(r); } catch {} }
+    const merged = server.concat(missing).sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    saveLocal(merged);
+    apiSynced = true;
+    if (state.screen === "home" || state.screen === "history") render();
+  } catch { apiSynced = false; }
 }
 
 function initDb() {
@@ -370,6 +395,7 @@ function clearTimers() { timers.forEach(clearTimeout); timers = []; }
 function go(screen) {
   clearTimers();
   state.screen = screen;
+  if ((screen === "home" || screen === "history") && !synced) syncApi();
   render();
   window.scrollTo(0, 0);
 }
@@ -605,7 +631,9 @@ function renderHistory() {
          <div class="tbar"><div style="width:${(n / maxMiss) * 100}%"></div></div>`).join("")}</div>` : ""}
     <div class="btn-row"><button class="btn btn-primary btn-wide" id="startBtn">Start a practice quiz</button></div>
     ${h.length ? `<div class="btn-row"><button class="btn btn-danger btn-wide" id="clearBtn">Clear history</button></div>` : ""}
-    <p class="footnote">${synced
+    <p class="footnote">${apiSynced
+      ? "Scores sync — open this same link on any phone or computer to see them."
+      : synced
       ? "Scores sync — open this same link on any signed-in device to see them."
       : "History is saved on this device."}</p>`;
 
@@ -702,6 +730,7 @@ function confetti() {
 
 render();
 initDb();
+syncApi();
 </script>
 </body>
 </html>
