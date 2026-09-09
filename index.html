@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Civics Champ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@600;800;900&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root {
+    --bg: #F4F3EE;
+    --surface: #FFFFFF;
+    --ink: #1F2A44;
+    --muted: #5F6B7E;
+    --accent: #2B4C9B;
+    --accent-soft: rgba(43, 76, 155, 0.10);
+    --on-accent: #FFFFFF;
+    --star: #B3261E;
+    --good: #1E7F3C;
+    --good-soft: rgba(30, 127, 60, 0.12);
+    --bad: #C62828;
+    --bad-soft: rgba(198, 40, 40, 0.10);
+    --line: #DCDAD1;
+    --shadow: 0 2px 10px rgba(31, 42, 68, 0.07);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12161F;
+      --surface: #1C2230;
+      --ink: #E8EBF2;
+      --muted: #97A1B4;
+      --accent: #7C9BE8;
+      --accent-soft: rgba(124, 155, 232, 0.14);
+      --on-accent: #12161F;
+      --star: #E07B72;
+      --good: #4CAF6E;
+      --good-soft: rgba(76, 175, 110, 0.15);
+      --bad: #EF6E6E;
+      --bad-soft: rgba(239, 110, 110, 0.13);
+      --line: #2B3345;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12161F;
+    --surface: #1C2230;
+    --ink: #E8EBF2;
+    --muted: #97A1B4;
+    --accent: #7C9BE8;
+    --accent-soft: rgba(124, 155, 232, 0.14);
+    --on-accent: #12161F;
+    --star: #E07B72;
+    --good: #4CAF6E;
+    --good-soft: rgba(76, 175, 110, 0.15);
+    --bad: #EF6E6E;
+    --bad-soft: rgba(239, 110, 110, 0.13);
+    --line: #2B3345;
+    --shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font-family: "Atkinson Hyperlegible", "Avenir Next", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding: 18px 14px 48px; }
+
+  h1, h2, h3 { font-family: "Libre Franklin", "Franklin Gothic Medium", system-ui, sans-serif; text-wrap: balance; margin: 0; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-variant-numeric: tabular-nums; }
+
+  .topbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 4px 2px 14px; }
+  .brand { font-family: "Libre Franklin", system-ui, sans-serif; font-weight: 900; font-size: 22px; letter-spacing: -0.01em; }
+  .brand span { color: var(--accent); }
+  .brand .star { color: var(--star); }
+  .navlink {
+    background: none; border: none; padding: 4px 2px; cursor: pointer;
+    color: var(--accent); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;
+  }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 20px 18px; margin-bottom: 14px; }
+  .card.flag-top { border-top: 4px solid var(--accent); }
+
+  .hero h1 { font-size: 30px; font-weight: 900; line-height: 1.15; }
+  .hero p { color: var(--muted); margin: 10px 0 0; }
+  .topic-list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .topic-list li { font-size: 14px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 4px 12px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; text-align: center;
+    font: inherit; font-weight: 700; cursor: pointer;
+    border-radius: 12px; padding: 13px 20px; min-height: 52px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    touch-action: manipulation;
+  }
+  .btn:focus-visible, .navlink:focus-visible, input:focus-visible, details summary:focus-visible, .opt:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 2px;
+  }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-size: 17px; }
+  .btn-wide { width: 100%; }
+  .btn-danger { color: var(--bad); }
+  .btn-row { display: flex; gap: 10px; margin-top: 16px; }
+  .btn-row .btn { flex: 1; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; }
+  .stat .num { font-family: "IBM Plex Mono", monospace; font-size: 23px; font-weight: 600; }
+  .stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+
+  /* ---------- Quiz ---------- */
+  .progress { position: sticky; top: 0; z-index: 5; background: var(--bg); padding: 8px 0 10px; }
+  .progress .label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
+  .bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .bar > div { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.25s ease; }
+  @media (prefers-reduced-motion: reduce) { .bar > div { transition: none; } }
+
+  .qtopic { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 8px; }
+  .qtext { font-size: 20px; font-weight: 700; margin: 0 0 14px; font-family: "Libre Franklin", system-ui, sans-serif; }
+  .qtext .blank { border-bottom: 2px solid var(--accent); padding: 0 24px; }
+
+  .opts { display: flex; flex-direction: column; gap: 9px; }
+  .opt {
+    font: inherit; font-size: 16px; font-weight: 700; text-align: left; cursor: pointer;
+    border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink);
+    padding: 13px 14px; min-height: 52px; touch-action: manipulation;
+  }
+  .opt.right { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+  .opt.wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+  .opt:disabled { cursor: default; opacity: 1; }
+  .opt.dim:disabled { opacity: 0.55; }
+
+  .answer-line { display: flex; gap: 8px; }
+  input.answer {
+    flex: 1; width: 100%; min-height: 52px; padding: 8px 14px;
+    font: inherit; font-size: 18px; font-weight: 700;
+    color: var(--ink); background: var(--surface);
+    border: 2px solid var(--line); border-radius: 12px;
+  }
+  input.answer::placeholder { color: var(--muted); opacity: 0.6; font-weight: 400; }
+  .answer-line .btn { flex: 0 0 auto; }
+
+  .feedback { min-height: 46px; border-radius: 10px; padding: 10px 12px; font-size: 15px; margin-top: 10px; }
+  .feedback.neutral { color: var(--muted); background: var(--surface); border: 1px dashed var(--line); }
+  .feedback.right { color: var(--good); background: var(--good-soft); font-weight: 700; }
+  .feedback.wrong { color: var(--bad); background: var(--bad-soft); font-weight: 700; }
+  .feedback .why { display: block; font-weight: 400; color: var(--ink); margin-top: 4px; }
+
+  /* ---------- Results / history ---------- */
+  .score-hero { text-align: center; padding: 26px 18px; }
+  .score-big { font-family: "IBM Plex Mono", monospace; font-size: 54px; font-weight: 600; line-height: 1; }
+  .score-msg { font-family: "Libre Franklin", system-ui, sans-serif; font-size: 22px; font-weight: 800; margin-top: 10px; }
+  .score-sub { color: var(--muted); margin-top: 4px; }
+
+  .misslist { margin: 0; padding: 0; list-style: none; }
+  .misslist li { padding: 10px 4px; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .misslist li:last-child { border-bottom: none; }
+  .misslist .q { font-weight: 700; display: block; }
+  .misslist .a { color: var(--bad); }
+  .misslist .cor { color: var(--good); font-weight: 700; }
+  .allgood { color: var(--good); font-weight: 700; padding: 10px 4px; }
+
+  .hrow { border-bottom: 1px solid var(--line); }
+  .hrow:last-child { border-bottom: none; }
+  .hrow summary { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 4px; cursor: pointer; list-style: none; }
+  .hrow summary::-webkit-details-marker { display: none; }
+  .hdate { font-size: 15px; flex: 1; }
+  .hdate small { display: block; color: var(--muted); }
+  .hscore { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 14px; color: var(--muted); }
+  .hpct { font-family: "IBM Plex Mono", monospace; font-weight: 600; border-radius: 999px; padding: 4px 11px; font-size: 14px; }
+  .pct-good { color: var(--good); background: var(--good-soft); }
+  .pct-mid  { color: var(--accent); background: var(--accent-soft); }
+  .pct-low  { color: var(--bad); background: var(--bad-soft); }
+  .hdetail { padding: 0 4px 12px; }
+
+  .trouble .tlabel { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .trouble .tlabel .mono { color: var(--muted); font-weight: 600; font-size: 13px; }
+  .tbar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; margin-bottom: 9px; }
+  .tbar > div { height: 100%; border-radius: 999px; background: var(--bad); }
+
+  /* ---------- Study sheet ---------- */
+  .study h3 { font-size: 17px; margin: 16px 0 6px; color: var(--accent); }
+  .study h3:first-child { margin-top: 0; }
+  .study ul { margin: 0; padding-left: 20px; }
+  .study li { margin-bottom: 5px; font-size: 15.5px; }
+  .study b { color: var(--star); }
+
+  .empty { color: var(--muted); text-align: center; padding: 26px 10px; }
+  .footnote { color: var(--muted); font-size: 13px; text-align: center; margin-top: 18px; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span class="star">★</span> Civics <span>Champ</span></div>
+    <button class="navlink" id="navBtn"></button>
+  </div>
+  <div id="app"></div>
+</div>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+"use strict";
+
+/* ================= question bank (from VJ's Citizenship 2.3 & 2.4 guide) =================
+   type "mc": options[0] is always the correct one (shuffled at display time)
+   type "type": typed answer, `a` is the display answer, `accept` lists extra OK answers */
+const BANK = [
+  // ----- Citizenship 2.3: A Citizen's Legal Duties -----
+  { t: "Duties", type: "type", q: "Responsibilities are things we should do — obligations we fulfill ____.", a: "voluntarily", accept: ["voluntary", "volunterily"], why: "Responsibilities are voluntary; duties are required." },
+  { t: "Duties", type: "type", q: "Duties are things we are ____ to do.", a: "required", why: "Duties are required by law — responsibilities are voluntary." },
+  { t: "Duties", type: "mc", q: "What can happen if we don't fulfill duties required by national, state, and local governments?", o: ["Fines or imprisonment", "Nothing happens", "You lose your citizenship", "Extra homework"], why: "The guide says we must fulfill duties or face fines or imprisonment." },
+  { t: "Duties", type: "mc", q: "Which of these is a legal DUTY, not a voluntary responsibility?", o: ["Paying taxes", "Voting", "Volunteering in your community", "Joining a political party"], why: "The five duties: obey the law, pay taxes, defend the nation, serve in court, attend school. Voting is a responsibility." },
+  { t: "Duties", type: "mc", q: "Laws serve specific purposes, such as…", o: ["Helping people get along, preventing accidents, and seeing resources are used fairly", "Making the government rich", "Keeping people from traveling", "Choosing who can vote"], why: "That's the purpose of laws in duty #1: Obey the Law." },
+  { t: "Duties", type: "mc", q: "Government uses tax money to pay for…", o: ["Police, paving roads, and the armed forces", "Birthday parties", "Private businesses", "Movie tickets"], why: "Duty #2: Pay Taxes — taxes pay police, pave roads, and maintain armed forces." },
+  { t: "Duties", type: "mc", q: "People pay taxes as a percentage of…", o: ["What they bring in, the sale of goods, or property", "Only their allowance", "Only what they save", "Nothing — taxes are optional"], why: "Income, sales of goods, and property can all be taxed." },
+  { t: "Duties", type: "type", q: "Duty #3: Defend the ____.", a: "nation", accept: ["country"], why: "Duty #3 is Defend the Nation." },
+  { t: "Duties", type: "mc", q: "In the U.S., all men of what age must register with the government in case of a draft?", o: ["18–25", "16–18", "21–30", "Any age"], why: "All men aged 18–25 must register; today military service is voluntary." },
+  { t: "Duties", type: "mc", q: "Today, military service in the United States is…", o: ["Voluntary", "Required for everyone", "Only for women", "Decided by each state"], why: "The draft is only a backup — today military service is voluntary." },
+  { t: "Duties", type: "type", q: "Duty #4: Serve in ____.", a: "court", why: "Every adult citizen must be prepared to serve on a jury or as a witness at a trial." },
+  { t: "Duties", type: "mc", q: "Every adult citizen must be prepared to serve at a trial as a…", o: ["Juror or witness", "Judge or lawyer", "Police officer", "Reporter"], why: "Duty #4: serve on a jury or as a witness if called." },
+  { t: "Duties", type: "type", q: "Most states require young people to attend school until the age of ____.", a: "16", accept: ["sixteen"], why: "Duty #5: Attend School — most states require it until age 16." },
+  { t: "Duties", type: "mc", q: "Which list shows the five legal duties of a citizen?", o: ["Obey the law, pay taxes, defend the nation, serve in court, attend school", "Vote, volunteer, recycle, donate, protest", "Work, save, spend, travel, study", "Read, write, speak, listen, watch"], why: "Those are the five duties from the guide." },
+
+  // ----- Citizenship 2.3: Civic Responsibilities -----
+  { t: "Responsibilities", type: "type", q: "Be informed: know what the government is doing so that you can voice your ____.", a: "opinion", why: "Being informed lets you voice your opinion." },
+  { t: "Responsibilities", type: "mc", q: "People can learn about issues and leaders by…", o: ["Reading print publications, listening to radio or TV news, talking to people, and searching the internet", "Only watching cartoons", "Guessing", "Waiting to be told at school"], why: "The guide lists print, radio/TV, talking to people, and the internet." },
+  { t: "Responsibilities", type: "type", q: "Be ____ of your rights.", a: "aware", accept: ["awear", "awere", "awair"], why: "Be aware of your rights." },
+  { t: "Responsibilities", type: "type", q: "Speak up and ____.", a: "vote", why: "Speak Up and Vote — make your concerns known." },
+  { t: "Responsibilities", type: "mc", q: "\"The government exists to ____ you, but you must make your concerns known.\"", o: ["Serve", "Watch", "Charge", "Ignore"], why: "The government exists to serve you." },
+  { t: "Responsibilities", type: "mc", q: "Which are ways to speak up as a citizen?", o: ["Calling, writing, or e-mailing your representatives; joining political parties; working for a cause", "Keeping quiet", "Breaking laws you dislike", "Moving away"], why: "Contact representatives, join parties, work for causes." },
+  { t: "Responsibilities", type: "type", q: "Vandalizing and littering are not only disrespectful but also a ____.", a: "crime", why: "People must respect public property and the property of others." },
+  { t: "Responsibilities", type: "mc", q: "Tolerance means…", o: ["Respecting and accepting others regardless of their beliefs, practices, or differences", "Agreeing with everyone about everything", "Only respecting people like you", "Never having your own opinion"], why: "Tolerance = respecting and accepting others regardless of beliefs, practices, or differences." },
+  { t: "Responsibilities", type: "mc", q: "The guide says diversity in our country is…", o: ["A strength — all citizens are equal and entitled to be treated the same", "A weakness", "A problem to fix", "Only about food"], why: "Diversity is a strength; all citizens are equal." },
+  { t: "Responsibilities", type: "mc", q: "Contributing to the common good means…", o: ["Giving time, effort, and money to help others and improve community life", "Keeping everything for yourself", "Only helping your own family", "Paying taxes"], why: "Common good = time, effort, and money to help others and the community." },
+  { t: "Responsibilities", type: "type", q: "Be an active participant in your ____.", a: "community", why: "Contribute to the common good — be active in your community." },
+  { t: "Responsibilities", type: "mc", q: "Which is a civic RESPONSIBILITY (voluntary), not a duty?", o: ["Voting", "Paying taxes", "Serving on a jury", "Attending school"], why: "Voting is voluntary — the others are legal duties." },
+
+  // ----- Citizenship 2.4: Classifying Government -----
+  { t: "Government", type: "mc", q: "A monarchy is headed by a…", o: ["King, queen, emperor, or empress", "President", "Prime minister only", "Committee"], why: "A monarchy has a king, queen, emperor, empress, etc." },
+  { t: "Government", type: "mc", q: "In a monarchy, the ruling position can be passed on to…", o: ["The ruler's heirs", "The best student", "Whoever wins an election", "The richest person"], why: "Monarchy passes power to the ruler's heirs." },
+  { t: "Government", type: "type", q: "In some traditional monarchies, the monarch has ____ power.", a: "absolute", why: "Traditional monarchs can hold absolute power." },
+  { t: "Government", type: "mc", q: "A constitutional monarchy, like the United Kingdom, also has…", o: ["A democratic government that limits the monarch's control", "No laws at all", "Two kings", "An army in charge"], why: "The UK's democratic government limits the monarch's control." },
+  { t: "Government", type: "type", q: "A republic is a country that has no ____.", a: "monarch", accept: ["monarchy", "king", "king or queen"], why: "A republic has no monarch." },
+  { t: "Government", type: "type", q: "In a republic, the head of the country is usually an ____ ____.", a: "elected president", accept: ["president", "elected presidant"], why: "The head of a republic is usually an elected president." },
+  { t: "Government", type: "mc", q: "In a democracy, the government is…", o: ["Elected by the people", "Chosen by the army", "Inherited", "Picked by one leader"], why: "Democracy = government elected by the people." },
+  { t: "Government", type: "type", q: "In a democracy, everyone who is eligible to ____ has a chance to have a say over who runs the country.", a: "vote", why: "Eligible voters choose who runs the country." },
+  { t: "Government", type: "mc", q: "A dictatorship is ruled by…", o: ["A single leader who was not elected and may use force to keep control", "Elected representatives", "A royal family with no power", "The courts"], why: "Dictators aren't elected and may use force." },
+  { t: "Government", type: "mc", q: "In a military dictatorship, who is in control?", o: ["The army", "The voters", "The courts", "The newspapers"], why: "A military dictatorship is an authoritarian government run by the army." },
+  { t: "Government", type: "type", q: "Unitary government: a very strong ____ government, where states have weak authority (example: United Kingdom).", a: "central", why: "Unitary = strong central government." },
+  { t: "Government", type: "type", q: "Federal government: central and state governments ____ authority (example: United States).", a: "share", accept: ["shear", "shair", "shared"], why: "Federal = shared authority between central and state governments." },
+  { t: "Government", type: "mc", q: "Which country is the guide's example of a confederation, where independent states agree to limits and consult jointly?", o: ["Switzerland", "United States", "Saudi Arabia", "Japan"], why: "Switzerland is the confederation example." },
+  { t: "Government", type: "mc", q: "In a PARLIAMENTARY monarchy (like the UK), the monarch…", o: ["Does not make policy — he or she is a figurehead, and Parliament makes the laws", "Has absolute power", "Commands the army directly", "Is elected every four years"], why: "Parliamentary monarchy: the monarch is a figurehead; Parliament makes laws." },
+  { t: "Government", type: "mc", q: "Which country is the guide's example of an ABSOLUTE monarchy?", o: ["Saudi Arabia", "United Kingdom", "Japan", "Switzerland"], why: "Absolute monarchy: supreme power in a ruler for life, usually hereditary — Saudi Arabia." },
+  { t: "Government", type: "mc", q: "A CONSTITUTIONAL monarchy is guided by a written constitution. The guide's examples are…", o: ["Japan and Bhutan", "China and Libya", "United States and India", "Greece and Israel"], why: "Japan and Bhutan are the constitutional monarchy examples." },
+  { t: "Government", type: "type", q: "____ Democracy: the people's elected representatives vote on legislation (example: United States).", a: "representative", why: "Representative democracy: elected representatives vote on laws." },
+  { t: "Government", type: "mc", q: "In a Federal Republic (United States, India), ultimate power is held by…", o: ["The voters, who choose their representatives", "The president alone", "The states alone", "The courts"], why: "Voters hold ultimate power in a federal republic." },
+  { t: "Government", type: "mc", q: "A confederation (as a type of republic) is a combination of representative democracy and…", o: ["Direct democracy", "Monarchy", "Dictatorship", "Theocracy"], why: "Confederation combines representative and direct democracy." },
+  { t: "Government", type: "mc", q: "Which place is the guide's example of DIRECT democracy?", o: ["Ancient Greece", "Modern France", "Ancient Rome", "Canada"], why: "Direct democracy: Ancient Greece." },
+  { t: "Government", type: "mc", q: "An oligarchy is…", o: ["Government by a few — a small group exercises control, and the citizen has a very limited role", "Government by one king", "Government by all the people", "Government with no leaders"], why: "Oligarchy = rule by a few, often for corrupt or selfish purposes." },
+  { t: "Government", type: "mc", q: "Which are the guide's examples of RULE BY A FEW?", o: ["Communism, totalitarianism, military dictatorship, and theocracy", "Democracy and republic", "Federal and unitary systems", "Parliaments and congresses"], why: "Rule by a few: communism, totalitarianism, military dictatorship, theocracy (China, Libya, Iran)." },
+  { t: "Government", type: "mc", q: "An autocracy is a form of government in which…", o: ["One person possesses unlimited power and the citizen has little if any role", "Everyone votes on every law", "A small group shares power", "The states hold all power"], why: "Autocracy = rule by one with unlimited power." },
+  { t: "Government", type: "mc", q: "The two forms of autocracy (rule by one) in the guide are…", o: ["Absolute monarchy and dictatorship", "Democracy and republic", "Oligarchy and theocracy", "Federation and confederation"], why: "Rule by one: absolute monarchy and dictatorship." },
+  { t: "Government", type: "mc", q: "\"Rule by many\" describes which kind of government?", o: ["Democracy — supreme power held by the people, usually with free elections", "Oligarchy", "Autocracy", "Dictatorship"], why: "Democracy is rule by many, with power held by the people." },
+];
+const QUIZ_LEN = 15;
+
+/* ================= typed-answer matching ================= */
+const norm = s => String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+function lev(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 99;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+        dp[i][j] = Math.min(dp[i][j], dp[i - 2][j - 2] + 1);
+    }
+  return dp[a.length][b.length];
+}
+function matches(guess, q) {
+  const g = norm(guess);
+  if (!g) return false;
+  return [q.a, ...(q.accept || [])].map(norm).some(c => {
+    if (c === g) return true;
+    if (c.length >= 8 && lev(c, g) <= 2) return true;
+    if (c.length >= 4 && lev(c, g) <= 1) return true;
+    return false;
+  });
+}
+
+/* ================= helpers ================= */
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ================= storage (this device only — GitHub Pages has no server) ================= */
+const KEY = "civics-champ-history";
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; }
+}
+function saveHistory(h) {
+  try { localStorage.setItem(KEY, JSON.stringify(h)); } catch {}
+}
+
+/* ================= state ================= */
+const app = document.getElementById("app");
+const navBtn = document.getElementById("navBtn");
+let state = { screen: "home", quiz: [], idx: 0, right: 0, misses: [], locked: false };
+let timers = [];
+function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+function go(screen) {
+  clearTimers();
+  state.screen = screen;
+  render();
+  window.scrollTo(0, 0);
+}
+
+navBtn.addEventListener("click", () => {
+  if (state.screen === "quiz") {
+    if (confirm("Quit this quiz? It won't be scored.")) go("home");
+  } else if (state.screen === "home") {
+    go("history");
+  } else {
+    go("home");
+  }
+});
+
+function pctClass(p) { return p >= 90 ? "pct-good" : p >= 70 ? "pct-mid" : "pct-low"; }
+
+function startQuiz() {
+  state.quiz = shuffle(BANK).slice(0, QUIZ_LEN);
+  state.idx = 0;
+  state.right = 0;
+  state.misses = [];
+  go("quiz");
+}
+
+function render() {
+  navBtn.textContent = state.screen === "quiz" ? "Quit" : state.screen === "home" ? "History" : "Home";
+  if (state.screen === "home") renderHome();
+  else if (state.screen === "quiz") renderQuiz();
+  else if (state.screen === "results") renderResults();
+  else if (state.screen === "study") renderStudy();
+  else renderHistory();
+}
+
+function renderHome() {
+  const h = loadHistory();
+  const best = h.length ? Math.max(...h.map(r => r.percent)) : null;
+  const avg = h.length ? Math.round(h.reduce((a, r) => a + r.percent, 0) / h.length) : null;
+  app.innerHTML = `
+    <div class="card hero flag-top">
+      <h1>Ready for Friday, VJ?</h1>
+      <p>${QUIZ_LEN} random questions each round, drawn from ${BANK.length} covering your whole Citizenship 2.3 &amp; 2.4 guide. Instant grading with the why behind every answer.</p>
+      <ul class="topic-list">
+        <li>The 5 legal duties</li><li>Civic responsibilities</li><li>Types of government</li>
+      </ul>
+      <div class="btn-row"><button class="btn btn-primary btn-wide" id="startBtn">Start a practice quiz</button></div>
+      <div class="btn-row"><button class="btn btn-wide" id="studyBtn">Read the study sheet</button></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="num mono">${h.length}</div><div class="lbl">Quizzes</div></div>
+      <div class="stat"><div class="num mono">${best === null ? "–" : best + "%"}</div><div class="lbl">Best</div></div>
+      <div class="stat"><div class="num mono">${avg === null ? "–" : avg + "%"}</div><div class="lbl">Average</div></div>
+    </div>`;
+  document.getElementById("startBtn").addEventListener("click", startQuiz);
+  document.getElementById("studyBtn").addEventListener("click", () => go("study"));
+}
+
+function advance() {
+  clearTimers();
+  state.idx++;
+  if (state.idx >= state.quiz.length) finishQuiz();
+  else render();
+}
+
+function renderQuiz() {
+  const q = state.quiz[state.idx];
+  const n = state.quiz.length;
+  const isMC = q.type === "mc";
+  const qHTML = esc(q.q).replace(/____/g, '<span class="blank">&nbsp;</span>');
+
+  let answerHTML;
+  let opts = [];
+  if (isMC) {
+    opts = shuffle(q.o.map((text, i) => ({ text, correct: i === 0 })));
+    answerHTML = `<div class="opts">${opts.map((o, i) =>
+      `<button class="opt" data-i="${i}">${esc(o.text)}</button>`).join("")}</div>`;
+  } else {
+    answerHTML = `<div class="answer-line">
+        <input class="answer" id="ansInput" type="text" autocomplete="off" autocapitalize="off" placeholder="Type your answer" aria-label="Your answer">
+        <button class="btn btn-primary" id="checkBtn">Check</button>
+      </div>`;
+  }
+
+  app.innerHTML = `
+    <div class="progress">
+      <div class="label"><span>Question ${state.idx + 1} of ${n}</span><span>${esc(q.t)}</span></div>
+      <div class="bar"><div style="width:${((state.idx + 1) / n) * 100}%"></div></div>
+    </div>
+    <div class="card">
+      <div class="qtopic">${esc(q.t)}</div>
+      <p class="qtext">${qHTML}</p>
+      ${answerHTML}
+      <div class="feedback neutral" id="feedback">${isMC ? "Tap the best answer." : "Little typos are forgiven — spelling doesn't have to be perfect."}</div>
+    </div>`;
+
+  const feedback = document.getElementById("feedback");
+  const showWhy = ok => {
+    feedback.className = "feedback " + (ok ? "right" : "wrong");
+    feedback.innerHTML = (ok ? "Correct! ✓" : `Not quite — the answer is <b>${esc(isMC ? q.o[0] : q.a)}</b>.`) +
+      `<span class="why">${esc(q.why)}</span>` +
+      (ok ? "" : ` <button class="navlink" id="nextBtn">Next →</button>`);
+    if (!ok) document.getElementById("nextBtn").addEventListener("click", advance);
+  };
+
+  if (isMC) {
+    app.querySelectorAll(".opt").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (state.locked) return;
+        state.locked = true;
+        const chosen = opts[Number(btn.dataset.i)];
+        app.querySelectorAll(".opt").forEach((b, i) => {
+          b.disabled = true;
+          if (opts[i].correct) b.classList.add("right");
+          else if (b === btn) b.classList.add("wrong");
+          else b.classList.add("dim");
+        });
+        if (chosen.correct) {
+          state.right++;
+          showWhy(true);
+          later(() => { state.locked = false; advance(); }, 1300);
+        } else {
+          state.misses.push({ q: q.q, a: chosen.text, c: q.o[0] });
+          showWhy(false);
+          state.locked = false;
+        }
+      });
+    });
+  } else {
+    const input = document.getElementById("ansInput");
+    const checkBtn = document.getElementById("checkBtn");
+    const submit = () => {
+      if (state.locked) return;
+      const guess = input.value.trim();
+      if (!guess) { input.focus(); return; }
+      state.locked = true;
+      input.disabled = true; checkBtn.disabled = true;
+      if (matches(guess, q)) {
+        state.right++;
+        showWhy(true);
+        later(() => { state.locked = false; advance(); }, 1300);
+      } else {
+        state.misses.push({ q: q.q, a: guess.slice(0, 60), c: q.a });
+        showWhy(false);
+        state.locked = false;
+      }
+    };
+    checkBtn.addEventListener("click", submit);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
+  }
+  state.locked = false;
+}
+
+function finishQuiz() {
+  clearTimers();
+  const total = state.quiz.length;
+  const percent = Math.round((state.right / total) * 100);
+  const topics = {};
+  state.quiz.forEach(q => { topics[q.t] = topics[q.t] || { total: 0 }; topics[q.t].total++; });
+  const rec = {
+    id: Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+    date: new Date().toISOString(),
+    right: state.right, total, percent,
+    misses: state.misses.map(m => ({ q: m.q, a: m.a, c: m.c })),
+  };
+  const h = loadHistory();
+  h.push(rec);
+  saveHistory(h);
+  state.lastResult = rec;
+  go("results");
+}
+
+function missListHTML(misses) {
+  return misses.length
+    ? `<ul class="misslist">${misses.map(m =>
+        `<li><span class="q">${esc(m.q)}</span>
+         <span class="a">${esc(m.a)}</span> → <span class="cor">${esc(m.c)}</span></li>`).join("")}</ul>`
+    : `<div class="allgood">Nothing missed — perfect round!</div>`;
+}
+
+function renderResults() {
+  const r = state.lastResult;
+  const msg = r.percent === 100 ? "Perfect — a true Civics Champ! \u{1F3C6}"
+    : r.percent >= 90 ? "Excellent — you're ready for Friday!"
+    : r.percent >= 70 ? "Good work — review the misses below."
+    : "Keep going — read the study sheet, then try again.";
+  app.innerHTML = `
+    <div class="card score-hero flag-top">
+      <div class="score-big mono" style="color:${r.percent >= 90 ? "var(--good)" : r.percent >= 70 ? "var(--accent)" : "var(--bad)"}">${r.right}/${r.total}</div>
+      <div class="score-msg">${msg}</div>
+      <div class="score-sub">${r.percent}% · saved to history</div>
+      <div class="btn-row">
+        <button class="btn" id="studyBtn">Study sheet</button>
+        <button class="btn btn-primary" id="againBtn">New quiz</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="font-size:20px">${r.misses.length ? "What you missed" : "Clean sheet"}</h2>
+      ${missListHTML(r.misses)}
+    </div>`;
+  document.getElementById("againBtn").addEventListener("click", startQuiz);
+  document.getElementById("studyBtn").addEventListener("click", () => go("study"));
+  if (r.percent >= 90) confetti();
+}
+
+function renderHistory() {
+  const h = loadHistory().slice().reverse();
+  const missCount = {};
+  h.forEach(r => (r.misses || []).forEach(m => { missCount[m.q] = (missCount[m.q] || 0) + 1; }));
+  const worst = Object.entries(missCount).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const maxMiss = worst.length ? worst[0][1] : 1;
+
+  const rows = h.map(r => {
+    const d = new Date(r.date);
+    const date = d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    return `<details class="hrow">
+        <summary>
+          <div class="hdate">${date}<small>${time}</small></div>
+          <span class="hscore">${r.right}/${r.total}</span>
+          <span class="hpct ${pctClass(r.percent)}">${r.percent}%</span>
+        </summary>
+        <div class="hdetail">${missListHTML(r.misses || [])}</div>
+      </details>`;
+  }).join("");
+
+  app.innerHTML = `
+    <div class="card">
+      <h2 style="font-size:22px">Quiz history</h2>
+      <p style="color:var(--muted);font-size:14px;margin:6px 0 4px">Tap a quiz to see exactly what was missed.</p>
+      ${h.length ? rows : `<div class="empty">No quizzes yet — take your first one!</div>`}
+    </div>
+    ${worst.length ? `<div class="card trouble"><h2 style="font-size:22px">Trouble questions</h2>
+      <p style="color:var(--muted);font-size:14px;margin:6px 0 10px">Missed most often — drill these before Friday.</p>
+      ${worst.map(([qq, n]) =>
+        `<div class="tlabel"><span style="max-width:75%">${esc(qq)}</span><span class="mono">${n}×</span></div>
+         <div class="tbar"><div style="width:${(n / maxMiss) * 100}%"></div></div>`).join("")}</div>` : ""}
+    <div class="btn-row"><button class="btn btn-primary btn-wide" id="startBtn">Start a practice quiz</button></div>
+    ${h.length ? `<div class="btn-row"><button class="btn btn-danger btn-wide" id="clearBtn">Clear history</button></div>` : ""}
+    <p class="footnote">History is saved on this device.</p>`;
+
+  document.getElementById("startBtn").addEventListener("click", startQuiz);
+  const clearBtn = document.getElementById("clearBtn");
+  if (clearBtn) clearBtn.addEventListener("click", () => {
+    if (confirm("Delete all saved scores? This can't be undone.")) { saveHistory([]); render(); }
+  });
+}
+
+function renderStudy() {
+  app.innerHTML = `
+    <div class="card study flag-top">
+      <h2 style="font-size:22px;margin-bottom:4px">The whole guide, small enough for a phone</h2>
+      <h3>The 5 legal duties (required — or face fines or imprisonment)</h3>
+      <ul>
+        <li><b>1. Obey the law</b> — laws help people get along, prevent accidents, and share resources fairly.</li>
+        <li><b>2. Pay taxes</b> — taxes pay police, pave roads, and maintain the armed forces. Paid on income, sales, and property.</li>
+        <li><b>3. Defend the nation</b> — men 18–25 must register in case of a draft; today service is <b>voluntary</b>.</li>
+        <li><b>4. Serve in court</b> — be ready to serve on a jury or as a witness.</li>
+        <li><b>5. Attend school</b> — in most states until age <b>16</b>.</li>
+      </ul>
+      <h3>Civic responsibilities (voluntary)</h3>
+      <ul>
+        <li><b>Be informed</b> — know what government is doing so you can voice your <b>opinion</b> (print, radio/TV, talking, internet). Be <b>aware</b> of your rights.</li>
+        <li><b>Speak up and vote</b> — government exists to serve you; call, write, or e-mail representatives, join parties, work for causes.</li>
+        <li><b>Respect property</b> — vandalizing and littering are a <b>crime</b>.</li>
+        <li><b>Respect diversity</b> — tolerance = respecting and accepting others regardless of beliefs, practices, or differences. Diversity is a strength.</li>
+        <li><b>Contribute to the common good</b> — give time, effort, and money; be active in your <b>community</b>.</li>
+      </ul>
+      <h3>Classifying government</h3>
+      <ul>
+        <li><b>Monarchy</b> — king/queen/emperor; passed to heirs; traditional monarchs can have <b>absolute power</b>. A constitutional monarchy (UK) limits the monarch.</li>
+        <li><b>Republic</b> — no monarch; head is usually an <b>elected president</b>.</li>
+        <li><b>Democracy</b> — government elected by the people; everyone eligible to <b>vote</b> gets a say.</li>
+        <li><b>Dictatorship</b> — one unelected leader who may use force; military dictatorship = the <b>army</b> in control.</li>
+      </ul>
+      <h3>Unitary · Federal · Confederation</h3>
+      <ul>
+        <li><b>Unitary</b> — strong <b>central</b> government, weak states (UK).</li>
+        <li><b>Federal</b> — central and states <b>share</b> authority (US).</li>
+        <li><b>Confederation</b> — independent states agree to limits and consult jointly (Switzerland).</li>
+      </ul>
+      <h3>Types of monarchies</h3>
+      <ul>
+        <li><b>Parliamentary</b> — monarch is a figurehead; Parliament makes laws (UK).</li>
+        <li><b>Absolute</b> — ruler holds supreme power for life, hereditary (Saudi Arabia).</li>
+        <li><b>Constitutional</b> — guided by a written constitution (Japan, Bhutan).</li>
+      </ul>
+      <h3>Types of republics</h3>
+      <ul>
+        <li><b>Representative democracy</b> — elected representatives vote on legislation (US).</li>
+        <li><b>Federal republic</b> — central power restricted; ultimate power held by the voters (US, India).</li>
+        <li><b>Confederation</b> — representative + <b>direct</b> democracy combined.</li>
+      </ul>
+      <h3>Rule by many · few · one</h3>
+      <ul>
+        <li><b>Many: democracy</b> — power held by the people, free elections. Direct democracy: Ancient Greece. Parliamentary democracy: Great Britain, US, Israel.</li>
+        <li><b>Few: oligarchy</b> — small group controls, citizens have a limited role: communism, totalitarianism, military dictatorship, theocracy (China, Libya, Iran).</li>
+        <li><b>One: autocracy</b> — one person, unlimited power: absolute monarchy or dictatorship.</li>
+      </ul>
+      <div class="btn-row"><button class="btn btn-primary btn-wide" id="startBtn">I'm ready — quiz me</button></div>
+    </div>`;
+  document.getElementById("startBtn").addEventListener("click", startQuiz);
+}
+
+/* ================= confetti ================= */
+function confetti() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.getElementById("confetti");
+  cv.hidden = false;
+  cv.width = innerWidth; cv.height = innerHeight;
+  const ctx = cv.getContext("2d");
+  const colors = ["#B3261E", "#2B4C9B", "#FFFFFF", "#7C9BE8", "#1E7F3C"];
+  const bits = Array.from({ length: 120 }, () => ({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * 0.5,
+    vy: 2 + Math.random() * 3, vx: -1 + Math.random() * 2,
+    s: 5 + Math.random() * 6, r: Math.random() * Math.PI, vr: -0.1 + Math.random() * 0.2,
+    col: colors[Math.floor(Math.random() * colors.length)],
+  }));
+  let frames = 0;
+  (function loop() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const b of bits) {
+      b.x += b.vx; b.y += b.vy; b.r += b.vr;
+      ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.r);
+      ctx.fillStyle = b.col; ctx.fillRect(-b.s / 2, -b.s / 2, b.s, b.s * 0.6);
+      ctx.restore();
+    }
+    if (++frames < 220) requestAnimationFrame(loop);
+    else { ctx.clearRect(0, 0, cv.width, cv.height); cv.hidden = true; }
+  })();
+}
+
+render();
+</script>
+</body>
+</html>
